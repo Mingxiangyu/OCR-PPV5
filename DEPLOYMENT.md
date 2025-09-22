@@ -1,19 +1,21 @@
-# OCR-PPV5 部署指南
+# OCR-PPV5 GPU 部署指南
 
-基于 PaddleOCR 3.1 的容器化部署方案
+基于 PaddleOCR 3.1 的 GPU 加速容器化部署方案
 
 ## 📋 系统要求
 
-### 基本要求
+### GPU 加速要求
+- **NVIDIA GPU**（支持 CUDA 11.8+）
+- **NVIDIA Docker Runtime**
+- **NVIDIA Driver 470+**
+- **至少 6GB GPU 显存**
+- **至少 8GB 系统内存**
+- **至少 15GB 可用磁盘空间**（用于模型文件和 CUDA 环境）
+
+### 基本环境
 - Docker 20.10+
 - Docker Compose 1.29+
-- 至少 4GB 可用内存
-- 至少 10GB 可用磁盘空间（用于模型文件）
-
-### GPU 支持（可选）
-- NVIDIA GPU（支持 CUDA 11.8+）
-- NVIDIA Docker Runtime
-- NVIDIA Driver 470+
+- NVIDIA Container Toolkit
 
 ## 🚀 快速部署
 
@@ -37,11 +39,8 @@ start.bat
 
 #### 方式 B：手动部署
 ```bash
-# CPU 模式（推荐）
+# GPU 模式（唯一支持的模式）
 docker-compose up --build -d
-
-# GPU 模式
-docker-compose -f docker-compose.gpu.yml up --build -d
 ```
 
 ### 3. 验证部署
@@ -62,10 +61,8 @@ curl http://localhost:5104/health
 ```
 OCR-PPV5/
 ├── app.py                    # 主应用
-├── Dockerfile               # CPU 版本镜像
-├── Dockerfile.gpu           # GPU 版本镜像
-├── docker-compose.yml       # CPU 版本编排
-├── docker-compose.gpu.yml   # GPU 版本编排
+├── Dockerfile               # GPU 版本镜像
+├── docker-compose.yml       # GPU 版本编排
 ├── requirements.txt         # Python 依赖
 ├── requirements-linux.txt   # Linux 特定依赖
 ├── start.sh                 # Linux 启动脚本
@@ -92,13 +89,7 @@ OCR-PPV5/
 
 ### 资源配置
 
-#### CPU 模式
-- **内存限制**: 4GB
-- **CPU 限制**: 2 核心
-- **内存保留**: 2GB
-- **CPU 保留**: 1 核心
-
-#### GPU 模式
+#### GPU 模式（唯一支持）
 - **内存限制**: 6GB
 - **CPU 限制**: 4 核心
 - **内存保留**: 3GB

@@ -16,19 +16,20 @@ ENV PADDLE_HOME=/app/models
 ENV HOME=/app/models
 
 # 安装系统依赖
-RUN apt-get update && apt-get install -y \
-    # 图像处理依赖
-    libgl1-mesa-glx \
+RUN sed -i 's/deb.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list.d/debian.sources && \
+    sed -i 's/security.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list.d/debian.sources && \
+    apt-get update && apt-get install -y \
+    # OpenGL 完整依赖（适配 Debian Trixie）
+    libgl1 \
+    libgl1-mesa-dri \
     libglib2.0-0 \
-    libsm6 \
-    libxext6 \
-    libxrender-dev \
     libgomp1 \
-    # PDF 处理依赖
-    poppler-utils \
+    libglu1-mesa \
     # 网络工具
     wget \
     curl \
+    # PDF 处理
+    poppler-utils \
     # 清理缓存
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
@@ -37,13 +38,13 @@ RUN apt-get update && apt-get install -y \
 COPY requirements*.txt ./
 
 # 升级 pip 并安装依赖（适配 PaddleOCR 3.1）
-RUN pip install --upgrade pip && \
-    # 先安装 PaddlePaddle GPU 版本
-    pip install paddlepaddle-gpu==3.1.0 && \
+RUN pip install --upgrade pip -i https://pypi.tuna.tsinghua.edu.cn/simple && \
+    # 安装 PaddlePaddle GPU 3.0.0 版本
+    pip install paddlepaddle-gpu==3.0.0 -i https://www.paddlepaddle.org.cn/packages/stable/cu118/ && \
     # 然后安装 PaddleOCR
-    pip install paddleocr && \
+    pip install paddleocr -i https://pypi.tuna.tsinghua.edu.cn/simple && \
     # 最后安装其他依赖
-    pip install -r requirements-linux.txt
+    pip install flask==2.3.3 flask-cors==4.0.0 flask-restx==1.1.0 numpy opencv-python Pillow pdf2image PyMuPDF requests Werkzeug==2.3.7 -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 # 复制应用代码
 COPY app.py .

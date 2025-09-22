@@ -1,40 +1,44 @@
-version: '3.8'
-
 services:
   ocr-api:
-    build: .
+    build: 
+      context: .
+      dockerfile: Dockerfile
     container_name: ocr-ppv5-service
+    runtime: nvidia  # 指定NVIDIA运行时
     ports:
-      - "5104:5104"  # 更新端口号以匹配app.py
+      - "5104:5104"
     environment:
       - PYTHONUNBUFFERED=1
       # PaddleOCR 3.1 模型存储目录环境变量
       - PADDLEHUB_HOME=/app/models
       - PADDLE_HOME=/app/models
       - HOME=/app/models
+      # GPU 相关环境变量
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
     volumes:
       # 可选：挂载日志目录
       - ./logs:/app/logs
       # 持久化模型文件目录（重要：避免每次启动都重新下载模型）
       - ./models:/app/models
     restart: unless-stopped
+    # 资源限制
+    deploy:
+      resources:
+        limits:
+          memory: 6G
+          cpus: '4.0'
+        reservations:
+          memory: 3G
+          cpus: '2.0'
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5104/"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 120s  # 增加启动时间，等待模型下载
-    # 资源限制（可选）
-    deploy:
-      resources:
-        limits:
-          memory: 4G  # 增加内存限制，适应PaddleOCR 3.1
-          cpus: '2.0'  # 增加CPU限制
-        reservations:
-          memory: 2G
-          cpus: '1.0'
+      start_period: 180s  # 增加启动时间，等待模型下载
 
 # 可选：添加网络配置
 networks:
   default:
-    name: ocr-network
+    name: ocr-gpu-network
